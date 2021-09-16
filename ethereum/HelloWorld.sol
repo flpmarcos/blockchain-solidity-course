@@ -10,7 +10,8 @@ contract HelloWorld {
     bool public answer;
     mapping (address => bool) public hasInteracted;
     mapping (address => uint) public hasCountInteracted;
-
+    uint public numberPay;
+    mapping (address => uint) public balances;
 
     // Criando a funcao setText que recebe a variavel myText
     // memory quer dizer que a funcao vai persistir somente quando chamada
@@ -27,6 +28,8 @@ contract HelloWorld {
         setInteracted();
         setCountInteracted();
     }
+
+
 
     // Obtem o endereco da carteira de quem executa o contrato
     function setAddress () public {
@@ -53,6 +56,7 @@ contract HelloWorld {
     }
 
     // ------------- Funcoes de calculo -------------------
+
     // Quando a funcao na manipula nenhuma variavel a não ser a dela mesma que recebe como parametro
     // As funcoes do de PURE não alteram e nem consultam algo na blockchain
     function sum (uint num1 , uint num2) public pure returns(uint) {
@@ -80,5 +84,35 @@ contract HelloWorld {
         return num1 + number;
     }
 
+    // ----------------- Funcoes pagas em ether ----------------
+    
+    // PAYABLE define que a funcao e paga
+    // REQUIRE - condicao para o resto do código ser executado 
+    // msg.value - Quantidade enviada para a chamada da funcao
+    function setNumberPayable(uint myNumberPay) public payable{
+        require(msg.value >= 1 ether , "Insufficient ETH send.");
+        balances[msg.sender] += msg.value;
+        numberPay = myNumberPay;
+        setInteracted();
+        setCountInteracted();
+    }
 
+    // a funcao transfer é default da rede etherium ele que é para transferir etherium
+    function sendEth(address payable targetAddress) public payable {
+        targetAddress.transfer(msg.value);
+
+    }
+
+    // Saque de moedas
+    function withdraw() public {
+        // Valida se o usuario tem saldo na conta
+        require(balances[msg.sender] > 0 , "Insufficient funds");
+        // Envia o valor do saldo do usuario para uma variavel - resolvendo o erro da reentrancia
+        uint amount = balances[msg.sender];
+        // Esvazia a conta do usuario
+        balances[msg.sender] = 0;
+        // E tranfere a quantia
+        msg.sender.transfer(amount);
+
+    }
 }
