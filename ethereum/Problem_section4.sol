@@ -1,6 +1,24 @@
 // Definindo versao do solidity para criar o contrato
 pragma solidity 0.7.0;
 
+// Desafio
+// Modulo Facil
+/*
+    Receber um numero de 0a 10, que sera passado por um usuario.
+    Se o numero recebido for maior que 5, retornar o texto "É mario que cinco!"
+    Se o numero recebido for menor ou igual a 5, retornar o texto "É menor ou igual a cinto"
+    Cobrar exatamente 2 eth para executar a funcao
+*/
+// Modulo Intermediario
+/*
+    O preço para executar a funcao duplica cada vez que ela é executada.
+    Sempre que o preço muda, o contrato dispara um evento informando qual é o novo preço.
+ */
+// Modulo Dificil
+/*
+    O dono do contrto é dono de todo ETH no contrto e pode saca-lo.
+    O dono do contrto pode escolher o valor a ser sacado em cada saque.
+ */
 
 // Criando uma biblioteca de codigos, e ainda por cima evitando overflow e underflow
 library SafeMath {
