@@ -1,8 +1,88 @@
 // Definindo versao do solidity para criar o contrato
 pragma solidity 0.7.0;
 
+// Criando uma biblioteca de codigos, e ainda por cima evitando overflow e underflow
+library SafeMath {
+    // ----------------- REPLICANDO A LIB SAFEMATH PARA ENTENDER O FUNCIONAMENTO DA MESMA ----------------
+    // Essas funcoes agora sao internal e o usuario nao pode ve-las
+    function sumSafe(uint a,uint b) internal pure returns(uint){
+        uint c = a + b;
+        require(c >= a , "Sum Overflow!");
+
+        return c;
+    }
+
+    function subSafe(uint a,uint b) internal pure returns(uint){
+        require(b <= a , "Sub Overflow!");
+        uint c = a - b;
+        
+        return c;
+    }
+
+    function mulSafe(uint a,uint b) internal pure returns(uint){
+        // Impede multiplicacao por 0
+        if(a == 0){
+            return 0;
+        }
+
+        uint c = a * b;
+        require(c / a == b , "Mult Overflow!");
+        
+        return c;
+    }
+    // Funcao de divisao nao tem como dar overflow 
+    function divSafe(uint a,uint b) internal pure returns(uint){
+        uint c = a / b;
+        
+        return c;
+    }
+
+}
+
+contract Ownable {
+    
+    // Ao declarar uma variavel owner é necessario definir ela como payable
+    address payable public owner;
+    
+    // Criando um evento que seja chamado quando uma funcao for executada
+    event OwnershipTransferred(address newOwner);
+
+    // Funcao default que define a carteira que fez o deploy do contrato como owner
+    // Essa funcao roda uma unica vez na vida junto com o contrato
+    constructor() public {
+        owner = msg.sender;
+    }
+
+    // Funcao modifier pode ser incluida na chamada de outras funcoes
+    // Nesse caso ela vai validar se o executor da funcao é o dono dela ou nao
+    modifier onlyOwner(){
+        require(msg.sender == owner, "you are not the owner!");
+        // Caso o modifier seja verdadeira essa linha executa o resto da funcao
+        _;
+    }
+
+    // Criando funcao para tansferir a posse do contrato, somente o dono pode chamar essa funcao
+    function transferOwnership(address payable newOwner) onlyOwner public {
+        // Inserindo na variavel o novo owner
+        owner = newOwner;
+
+        // Emitindo evento da transferencia de conta
+        emit OwnershipTransferred(owner);
+    }
+
+
+
+}
+
 // Crando contrato
-contract HelloWorld {
+// is Ownable define que o Contract helloworld herda as propridades do contrato que chama Ownable 
+contract HelloWorld is Ownable {
+    // Instanciando biblioteca criada acima, fazendo com que operacoes uint possam fazer operacoes de forma segura
+    using SafeMath for uint; 
+
+    // Variavel que vai armazenar o numero da carteria que vai deployar o contrato
+   
+    
     // defindino string text como publica -> acessivel na blockchain
     string public text;
     uint public number;
@@ -13,10 +93,11 @@ contract HelloWorld {
     uint public numberPay;
     mapping (address => uint) public balances;
 
+  
     // Criando a funcao setText que recebe a variavel myText
     // memory quer dizer que a funcao vai persistir somente quando chamada
     // public define a funcao como publica
-    function setText(string memory myText) public {
+    function setText(string memory myText) onlyOwner public {
         text = myText;
         setInteracted();
         setCountInteracted();
@@ -52,7 +133,7 @@ contract HelloWorld {
 
     // Funcao que conta quantas vezes a carteira interagiu com o contrato
     function setCountInteracted() private {
-        hasCountInteracted[msg.sender] += 1;
+        hasCountInteracted[msg.sender] = hasCountInteracted[msg.sender].sumSafe(1);
     }
 
     // ------------- Funcoes de calculo -------------------
@@ -81,7 +162,8 @@ contract HelloWorld {
 
     // As funcoes do tipo view só consultam mais nao alteram
     function sumStores(uint num1) public view returns(uint) {
-        return num1 + number;
+        // Quando voce chama uma funcao o parametro a e o que vem antes do . e o parametro b é o que vem entre parenteses
+        return num1.sumSafe(number);
     }
 
     // ----------------- Funcoes pagas em ether ----------------
@@ -91,7 +173,7 @@ contract HelloWorld {
     // msg.value - Quantidade enviada para a chamada da funcao
     function setNumberPayable(uint myNumberPay) public payable{
         require(msg.value >= 1 ether , "Insufficient ETH send.");
-        balances[msg.sender] += msg.value;
+        balances[msg.sender] = balances[msg.sender].sumSafe(msg.value);
         numberPay = myNumberPay;
         setInteracted();
         setCountInteracted();
@@ -132,50 +214,6 @@ contract HelloWorld {
     int32: -2.147.483.648 a 2.147.483.647
     E assim por diante
     */
-
-     // ----------------- REPLICANDO A LIB SAFEMATH PARA ENTENDER O FUNCIONAMENTO DA MESMA ----------------
-    function sumSafe(uint a,uint b) public pure returns(uint){
-        uint c = a + b;
-        require(c >= a , "Sum Overflow!");
-
-        return c;
-    }
-
-    function subSafe(uint a,uint b) public pure returns(uint){
-        require(b <= a , "Sub Overflow!");
-        uint c = a - b;
-        
-        return c;
-    }
-
-    function mulSafe(uint a,uint b) public pure returns(uint){
-        // Impede multiplicacao por 0
-        if(a == 0){
-            return 0;
-        }
-
-        uint c = a * b;
-        require(c / a == b , "Mult Overflow!");
-        
-        return c;
-    }
-    // Funcao de divisao nao tem como dar overflow 
-    function divSafe(uint a,uint b) public pure returns(uint){
-        uint c = a / b;
-        
-        return c;
-    }
-
-
-
-
-
-
-
-
-
-
-    
     
     
 }

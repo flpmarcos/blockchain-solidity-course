@@ -1,8 +1,49 @@
 // Definindo versao do solidity para criar o contrato
 pragma solidity 0.7.0;
 
+// Criando uma biblioteca de codigos, e ainda por cima evitando overflow e underflow
+library SafeMath {
+    // ----------------- REPLICANDO A LIB SAFEMATH PARA ENTENDER O FUNCIONAMENTO DA MESMA ----------------
+    // Essas funcoes agora sao internal e o usuario nao pode ve-las
+    function sumSafe(uint a,uint b) internal pure returns(uint){
+        uint c = a + b;
+        require(c >= a , "Sum Overflow!");
+
+        return c;
+    }
+
+    function subSafe(uint a,uint b) internal pure returns(uint){
+        require(b <= a , "Sub Overflow!");
+        uint c = a - b;
+        
+        return c;
+    }
+
+    function mulSafe(uint a,uint b) internal pure returns(uint){
+        // Impede multiplicacao por 0
+        if(a == 0){
+            return 0;
+        }
+
+        uint c = a * b;
+        require(c / a == b , "Mult Overflow!");
+        
+        return c;
+    }
+    // Funcao de divisao nao tem como dar overflow 
+    function divSafe(uint a,uint b) internal pure returns(uint){
+        uint c = a / b;
+        
+        return c;
+    }
+
+}
+
 // Crando contrato
 contract HelloWorld {
+    // Instanciando biblioteca criada acima, fazendo com que operacoes uint possam fazer operacoes de forma segura
+    using SafeMath for uint; 
+
     // defindino string text como publica -> acessivel na blockchain
     string public text;
     uint public number;
@@ -52,7 +93,7 @@ contract HelloWorld {
 
     // Funcao que conta quantas vezes a carteira interagiu com o contrato
     function setCountInteracted() private {
-        hasCountInteracted[msg.sender] += 1;
+        hasCountInteracted[msg.sender] = hasCountInteracted[msg.sender].sumSafe(1);
     }
 
     // ------------- Funcoes de calculo -------------------
@@ -81,7 +122,8 @@ contract HelloWorld {
 
     // As funcoes do tipo view só consultam mais nao alteram
     function sumStores(uint num1) public view returns(uint) {
-        return num1 + number;
+        // Quando voce chama uma funcao o parametro a e o que vem antes do . e o parametro b é o que vem entre parenteses
+        return num1.sumSafe(number);
     }
 
     // ----------------- Funcoes pagas em ether ----------------
@@ -91,7 +133,7 @@ contract HelloWorld {
     // msg.value - Quantidade enviada para a chamada da funcao
     function setNumberPayable(uint myNumberPay) public payable{
         require(msg.value >= 1 ether , "Insufficient ETH send.");
-        balances[msg.sender] += msg.value;
+        balances[msg.sender] = balances[msg.sender].sumSafe(msg.value);
         numberPay = myNumberPay;
         setInteracted();
         setCountInteracted();
@@ -132,50 +174,6 @@ contract HelloWorld {
     int32: -2.147.483.648 a 2.147.483.647
     E assim por diante
     */
-
-     // ----------------- REPLICANDO A LIB SAFEMATH PARA ENTENDER O FUNCIONAMENTO DA MESMA ----------------
-    function sumSafe(uint a,uint b) public pure returns(uint){
-        uint c = a + b;
-        require(c >= a , "Sum Overflow!");
-
-        return c;
-    }
-
-    function subSafe(uint a,uint b) public pure returns(uint){
-        require(b <= a , "Sub Overflow!");
-        uint c = a - b;
-        
-        return c;
-    }
-
-    function mulSafe(uint a,uint b) public pure returns(uint){
-        // Impede multiplicacao por 0
-        if(a == 0){
-            return 0;
-        }
-
-        uint c = a * b;
-        require(c / a == b , "Mult Overflow!");
-        
-        return c;
-    }
-    // Funcao de divisao nao tem como dar overflow 
-    function divSafe(uint a,uint b) public pure returns(uint){
-        uint c = a / b;
-        
-        return c;
-    }
-
-
-
-
-
-
-
-
-
-
-    
     
     
 }
