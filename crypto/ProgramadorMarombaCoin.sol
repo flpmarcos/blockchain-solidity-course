@@ -183,8 +183,10 @@ contract BasicToken is Ownable, ERC20 {
 
 }
 
-// Criando um novo contrato para deixar no basic token somente o que é do padrao ERC-20
+// Criando um novo contrato para deixar no basictoken somente o que é do padrao ERC-20
 // Só pelo fato dele ser um basic token ele ja herda o ownable e o ERC-20
+
+// Essa funcao vai criar novos tokens
 contract MintableToken is BasicToken {
 
     using SafeMath for uint;
@@ -223,5 +225,4 @@ contract ProgramadorMarombaCoin is MintableToken {
     string public constant name = "Programador Maromba Coin";
     string public constant symbol = "PMC";
     uint8 public constant decimals = 18;
-
 }
